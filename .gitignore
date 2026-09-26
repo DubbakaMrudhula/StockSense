@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+client/dist/
+client/build/
+
+# Local databases & logs
+server/data/*.json
+*.log
+npm-debug.log*
+
+# Environment & IDE
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/
