@@ -1,18 +1,20 @@
 {
-  "name": "stocksense-server",
+  "name": "odoo-inventory-server",
   "version": "1.0.0",
-  "description": "StockSense Inventory Management System Backend API",
-  "main": "server.js",
+  "description": "Enterprise Core Inventory and Product Management Backend - Member 1",
+  "main": "app.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "migrate": "node db/migrate.js",
+    "seed": "node db/seed.js",
+    "db:reset": "node db/migrate.js --reset && node db/seed.js"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.4.1"
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
   }
 }
