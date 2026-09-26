@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const store = require('../store');
 
-// GET /api/transfers
+// GET /internal-transfers
 router.get('/', async (req, res) => {
   try {
     const transfers = await store.getTransfers();
@@ -12,25 +12,50 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/transfers
+// POST /internal-transfers
+// Deliverable 1: Transfer form + validation (can't move more than available at source)
 router.post('/', async (req, res) => {
   try {
-    const { productSku, productName, quantity, fromLocation, toLocation, transferredBy } = req.body;
-    if (!productSku || !quantity || !fromLocation || !toLocation) {
-      return res.status(400).json({ error: "Product SKU, Quantity, From, and To locations are required" });
+    const { productSku, fromLocation, toLocation, quantity, transferredBy, notes } = req.body;
+    
+    if (!productSku || !fromLocation || !toLocation || quantity === undefined) {
+      return res.status(400).json({ error: "productSku, fromLocation, toLocation, and quantity are required." });
     }
 
-    const newTransfer = await store.createTransfer({
+    const result = await store.createInternalTransfer({
       productSku,
-      productName: productName || productSku,
-      quantity: Number(quantity),
       fromLocation,
       toLocation,
-      transferredBy: transferredBy || 'Warehouse Staff',
-      status: 'Completed'
+      quantity,
+      transferredBy,
+      notes
     });
 
-    res.status(201).json(newTransfer);
+    res.status(201).json({
+      message: `Successfully transferred ${quantity} of ${productSku} from ${fromLocation} to ${toLocation}. Total stock unchanged.`,
+      ...result
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PUT /internal-transfers/:id/validate
+router.put('/:id/validate', async (req, res) => {
+  try {
+    const validation = await store.validateTransfer(req.params.id);
+    if (!validation.isValid) {
+      return res.status(400).json({
+        valid: false,
+        error: `Insufficient stock at source: requested ${validation.requestedQuantity}, only ${validation.availableAtSource} available.`,
+        validation
+      });
+    }
+    res.json({
+      valid: true,
+      message: "Transfer is valid and source has sufficient stock.",
+      validation
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

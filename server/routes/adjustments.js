@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const store = require('../store');
 
-// GET /api/adjustments
+// GET /stock-adjustments
 router.get('/', async (req, res) => {
   try {
     const adjustments = await store.getAdjustments();
@@ -12,25 +12,31 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/adjustments
+// POST /stock-adjustments
+// Deliverable 2: Adjustment form showing recorded vs counted quantity and computed delta before confirming
 router.post('/', async (req, res) => {
   try {
-    const { productSku, productName, previousQuantity, newQuantity, reason, adjustedBy, notes } = req.body;
-    if (!productSku || newQuantity === undefined || !reason) {
-      return res.status(400).json({ error: "Product SKU, New Quantity, and Reason are required" });
+    const { productSku, location, countedQuantity, reason, adjustedBy, notes } = req.body;
+
+    if (!productSku || !location || countedQuantity === undefined || !reason) {
+      return res.status(400).json({
+        error: "productSku, location, countedQuantity, and reason are required."
+      });
     }
 
-    const newAdjustment = await store.createAdjustment({
+    const result = await store.createStockAdjustment({
       productSku,
-      productName: productName || productSku,
-      previousQuantity: Number(previousQuantity) || 0,
-      newQuantity: Number(newQuantity),
+      location,
+      countedQuantity,
       reason,
-      adjustedBy: adjustedBy || 'Inventory Manager',
-      notes: notes || ''
+      adjustedBy,
+      notes
     });
 
-    res.status(201).json(newAdjustment);
+    res.status(201).json({
+      message: `Stock adjustment recorded: ${result.adjustment.difference >= 0 ? '+' : ''}${result.adjustment.difference} difference applied.`,
+      ...result
+    });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

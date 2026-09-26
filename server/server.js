@@ -11,6 +11,7 @@ const receiptRoutes = require('./routes/receipts');
 const deliveryRoutes = require('./routes/deliveries');
 const transferRoutes = require('./routes/transfers');
 const adjustmentRoutes = require('./routes/adjustments');
+const ledgerRoutes = require('./routes/ledger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,14 +21,22 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/stocks
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Routes with /api prefix
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/internal-transfers', transferRoutes);
 app.use('/api/transfers', transferRoutes);
+app.use('/api/stock-adjustments', adjustmentRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
+app.use('/api/stock-ledger', ledgerRoutes);
+
+// Spec endpoints without /api prefix (as exact in specification image)
+app.use('/internal-transfers', transferRoutes);
+app.use('/stock-adjustments', adjustmentRoutes);
+app.use('/stock-ledger', ledgerRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -41,7 +50,7 @@ app.get('/api/health', (req, res) => {
 
 // Connect to MongoDB with graceful fallback
 mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 3000 // Fast 3-second timeout if local MongoDB isn't running
+  serverSelectionTimeoutMS: 3000
 })
 .then(() => {
   console.log("Connected to MongoDB successfully at:", MONGODB_URI);
